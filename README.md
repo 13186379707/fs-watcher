@@ -2,9 +2,11 @@
 
 I/O：https://github.com/13186379707/fs-watcher/tree/main/examples/c/io
 
-网络：https://github.com/13186379707/fs-watcher/tree/main/examples/c/net
+网络集成工具：https://github.com/13186379707/fs-watcher/tree/main/examples/c/net
 
 文件系统集成工具：https://github.com/13186379707/fs-watcher/tree/main/examples/c/fs-collection
+
+文件系统与I/O方面的采集指标：
 
 ### **1. 用户层**
 
