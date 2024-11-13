@@ -1,0 +1,16 @@
+{
+    "files.associations": {
+        "vmlinux.h": "c",
+        "io_queue.h": "c",
+        "ratio": "c",
+        "array": "c",
+        "functional": "c",
+        "tuple": "c",
+        "type_traits": "c",
+        "utility": "c",
+        "databuff_drop.bpf.h": "c",
+        "numbers": "c",
+        "io_queue_perfbuf.skel.h": "c",
+        "io_queue_perfbuf.h": "c"
+    }
+}
