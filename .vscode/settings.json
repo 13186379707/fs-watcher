@@ -11,6 +11,7 @@
         "databuff_drop.bpf.h": "c",
         "numbers": "c",
         "io_queue_perfbuf.skel.h": "c",
-        "io_queue_perfbuf.h": "c"
+        "io_queue_perfbuf.h": "c",
+        "typeinfo": "c"
     }
 }
