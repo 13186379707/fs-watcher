@@ -24,7 +24,7 @@ INCLUDES := -I$(OUTPUT) -I../../../libbpf/include/uapi -I$(dir $(VMLINUX)) -I$(L
 CFLAGS := -g -Wall
 ALL_LDFLAGS := $(LDFLAGS) $(EXTRA_LDFLAGS)
 
-APPS = 	system_io io_queue io_queue_perfbuf write_disk_time cache_stat
+APPS = 	bioinfo system_io io_queue io_queue_perfbuf write_disk_time cache_stat
 
 CARGO ?= $(shell which cargo)
 ifeq ($(strip $(CARGO)),)

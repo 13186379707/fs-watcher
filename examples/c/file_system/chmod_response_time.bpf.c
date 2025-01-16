@@ -17,7 +17,6 @@ struct {
 	__uint(max_entries, 256 * 1024);
 } rb SEC(".maps");//环形缓冲区；
 
-
 SEC("tracepoint/syscalls/sys_enter_chmod")//进入sys_read
 int tracepoint__syscalls__sys_enter_chmod(void *ctx){
 	u64 start_time = bpf_ktime_get_ns()/1000;//ms

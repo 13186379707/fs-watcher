@@ -28,7 +28,7 @@ APPS = storage_space \
 	event_monitor \
 	mount_response_time open_response_time read_response_time write_response_time unlink_response_time rename_response_time ftruncate_response_time chmod_response_time chown_response_time \
 	syscall_frequency \
-	bioinfo fs_monitor
+	fs_monitor
 	
 
 CARGO ?= $(shell which cargo)

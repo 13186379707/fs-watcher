@@ -1,31 +1,33 @@
-#ifndef __FS_WATCHER_H
-#define __FS_WATCHER_H
+#ifndef FS_WATCHER_H
+#define FS_WATCHER_H
 
-/*open*/
-#define path_size 256
-#define TASK_COMM_LEN 16
+//fs_watcher
+#define DNAME_INLINE_LEN 32
 
-struct event_open {
-	int pid_;
-	char path_name_[path_size];
-	int n_;
-    char comm[TASK_COMM_LEN];
+struct event_t {
+    char comm[16];
+    int pid;
+    char fname[256];
+    int op;
+    int is_fd;
 };
 
-/*read*/
+//event_monitor
+#include "x86_64_syscall.h"
 
-struct event_read {
+struct syscall_events {
 	int pid;
-    unsigned long long duration_ns;
+	unsigned long long delay;
+	char comm[16];
+    unsigned long long syscall_id;
 };
 
-/*write*/
-struct fs_t {
-   unsigned long inode_number;
-    pid_t pid;
-    size_t real_count;
-    size_t count;
+//chmod_event/chown_event
+struct event {
+	int pid;
+	unsigned long long duration_ns;
+	char comm[16];
 };
 
 
-#endif /* __MEM_WATCHER_H */
+#endif /* FS_WATCHER_H */

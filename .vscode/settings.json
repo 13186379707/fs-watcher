@@ -12,6 +12,10 @@
         "numbers": "c",
         "io_queue_perfbuf.skel.h": "c",
         "io_queue_perfbuf.h": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "common.bpf.h": "c",
+        "fs_watcher.h": "c",
+        "chmod_response_time.bpf.h": "c",
+        "read_response_time.bpf.h": "c"
     }
 }

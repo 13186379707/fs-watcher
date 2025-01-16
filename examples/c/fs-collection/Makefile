@@ -24,8 +24,7 @@ INCLUDES := -I$(OUTPUT) -I../../../libbpf/include/uapi -I$(dir $(VMLINUX)) -I$(L
 CFLAGS := -g -Wall
 ALL_LDFLAGS := $(LDFLAGS) $(EXTRA_LDFLAGS)
 
-APPS = write read open
-TARGETS= fs_watcher
+APPS = fs_watcher
 
 CARGO ?= $(shell which cargo)
 ifeq ($(strip $(CARGO)),)
@@ -70,7 +69,7 @@ $(call allow-override,CC,$(CROSS_COMPILE)cc)
 $(call allow-override,LD,$(CROSS_COMPILE)ld)
 
 .PHONY: all
-all: $(TARGETS)
+all: $(APPS)
 
 .PHONY: clean
 clean:
@@ -111,51 +110,26 @@ $(OUTPUT)/%.bpf.o: %.bpf.c $(LIBBPF_OBJ) $(wildcard %.h) $(VMLINUX) | $(OUTPUT) 
 	$(Q)$(BPFTOOL) gen object $@ $(patsubst %.bpf.o,%.tmp.bpf.o,$@)
 
 # Generate BPF skeletons
-# $(OUTPUT)/%.skel.h: $(OUTPUT)/%.bpf.o | $(OUTPUT) $(BPFTOOL)
-# 	$(call msg,GEN-SKEL,$@)
-# 	$(Q)$(BPFTOOL) gen skeleton $< > $@
-.PHONY: $(APPS)
-$(APPS): %: $(OUTPUT)/%.bpf.o | $(OUTPUT) $(BPFTOOL)
+$(OUTPUT)/%.skel.h: $(OUTPUT)/%.bpf.o | $(OUTPUT) $(BPFTOOL)
 	$(call msg,GEN-SKEL,$@)
-	$(Q)$(BPFTOOL) gen skeleton $< > $(OUTPUT)/$@.skel.h
+	$(Q)$(BPFTOOL) gen skeleton $< > $@
 
 # Build user-space code
-# $(patsubst %,$(OUTPUT)/%.o,$(APPS)): %.o: %.skel.h
+$(patsubst %,$(OUTPUT)/%.o,$(APPS)): %.o: %.skel.h
 
-# $(OUTPUT)/%.o: %.c $(wildcard %.h) | $(OUTPUT)
-# 	$(call msg,CC,$@)
-# 	$(Q)$(CC) $(CFLAGS) $(INCLUDES) -c $(filter %.c,$^) -o $@
-
-# $(patsubst %,$(OUTPUT)/%.o,$(TARGETS)): $(LIBBLAZESYM_OBJ)
-
-# $(TARGETS): $(LIBBLAZESYM_OBJ)
-
-# $(OUTPUT)/$(TARGETS).o: $(TARGETS).c $(APPS) | $(OUTPUT)
-# 	$(call msg,CC,$@)
-# 	$(Q)$(CC) $(CFLAGS) $(INCLUDES) -c $(filter %.c,$^) -o $@
-# $(OUTPUT)/%.o: %.c $(wildcard %.h) | $(OUTPUT)
-# 	$(call msg,CC,$@)
-# 	$(Q)$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-# $(OUTPUT)/$(TARGETS).o: $(TARGETS).c $(APPS) | $(OUTPUT)
-# 	$(call msg,CC,$@)
-# 	$(Q)$(CC) $(CFLAGS) $(INCLUDES) -c $(filter %.c,$^) -o $@
-
-# $(patsubst %,$(OUTPUT)/%.o,$(TARGETS)): $(LIBBLAZESYM_OBJ)
-
-# $(TARGETS): $(LIBBLAZESYM_OBJ)
-$(OUTPUT)/$(TARGETS).o: $(TARGETS).c $(APPS) | $(OUTPUT)
+$(OUTPUT)/%.o: %.c $(wildcard %.h) | $(OUTPUT)
 	$(call msg,CC,$@)
 	$(Q)$(CC) $(CFLAGS) $(INCLUDES) -c $(filter %.c,$^) -o $@
 
-# Build application binary
-# $(APPS): %: $(OUTPUT)/%.o $(LIBBPF_OBJ) | $(OUTPUT)
-# 	$(call msg,BINARY,$@)
-# 	$(Q)$(CC) $(CFLAGS) $^ $(ALL_LDFLAGS) -lelf -lz -o $@
+$(patsubst %,$(OUTPUT)/%.o,$(BZS_APPS)): $(LIBBLAZESYM_OBJ)
 
-$(TARGETS): %: $(OUTPUT)/%.o $(COMMON_OBJ) $(LIBBPF_OBJ) | $(OUTPUT)
+$(BZS_APPS): $(LIBBLAZESYM_OBJ)
+
+# Build application binary
+$(APPS): %: $(OUTPUT)/%.o $(LIBBPF_OBJ) | $(OUTPUT)
 	$(call msg,BINARY,$@)
-	$(Q)$(CC) $(CFLAGS) $^ $(ALL_LDFLAGS) -lstdc++ -lelf -lz -o $@
+	$(Q)$(CC) $(CFLAGS) $^ $(ALL_LDFLAGS) -lelf -lz -o $@
+
 # delete failed targets
 .DELETE_ON_ERROR:
 
