@@ -12,6 +12,17 @@
 #include "fs_watcher.skel.h"
 #include "fs_watcher.h"
 
+// 检查具有给定 PID 的进程是否存在
+int doesVmProcessExist(pid_t pid) {
+    if (kill(pid, 0) == 0) {
+        printf("Process %d exists.\n", pid);
+        return 1;
+    } else {
+        perror("kill");
+        return 0;
+    }
+}
+
 // 定义env结构体，用来存储程序中的事件信息
 static struct env {
     bool fs_monitor;
@@ -116,6 +127,16 @@ static error_t parse_arg(int key, char *arg, struct argp_state *state) {
 		case 'w':
 			env.write_event = true;
 			break;
+		case 'p':
+			env.fs_pid = strtol(arg, NULL, 10);
+			if (env.fs_pid <= 0 || doesVmProcessExist(env.fs_pid) == 0) {
+				fprintf(stderr, "Invalid fs_pid: %s\n", arg);
+				argp_state_help(state, stdout, ARGP_HELP_STD_HELP);
+			}
+			break;
+		case ARGP_KEY_ARG:
+            argp_state_help(state, stdout, ARGP_HELP_STD_HELP);
+            break;
     	default:
         	return ARGP_ERR_UNKNOWN;
     }
@@ -381,7 +402,7 @@ int main(int argc, char** argv)
 	/* Open BPF application */
 	skel = fs_watcher_bpf__open();
 	if (!skel) {
-		fprintf(stderr, "Failed to open BPF skeleton\n");
+		fprintf(stderr, "Failed to open BPF skeleton: %s\n", strerror(errno));
 		return 1;
 	}
 	/* Parameterize BPF code with parameter */
@@ -389,13 +410,13 @@ int main(int argc, char** argv)
 
 	err = fs_watcher_bpf__load(skel);
 	if (err) {
-		fprintf(stderr, "Failed to load and verify BPF skeleton\n");
+		fprintf(stderr, "Failed to load and verify BPF skeleton: %s\n", strerror(errno));
 		goto cleanup;
 	}
 
 	err = fs_watcher_bpf__attach(skel);
 	if (err) {
-		fprintf(stderr, "Failed to attach BPF skeleton\n");
+		fprintf(stderr, "Failed to attach BPF skeleton: %s\n", strerror(errno));
 		goto cleanup;
 	}
 
@@ -404,77 +425,77 @@ int main(int argc, char** argv)
     if (!pb)
 	{
 		err = -1;
-		fprintf(stderr, "Failed to create ring buffer\n");
+		fprintf(stderr, "Failed to create ring buffer: %s\n", strerror(errno));
 		goto cleanup;
 	}
     rb = ring_buffer__new(bpf_map__fd(skel->maps.rb), rb_handle_event, NULL, NULL);
     if (!rb) 
 	{
         err = -1;
-        fprintf(stderr, "Failed to create ring buffer(packet)\n");
+        fprintf(stderr, "Failed to create ring buffer(packet): %s\n", strerror(errno));
         goto cleanup;
     }
 	chmod_rb = ring_buffer__new(bpf_map__fd(skel->maps.chmod_rb), chmod_rb_handle_event, NULL, NULL);
     if (!chmod_rb) 
 	{
         err = -1;
-        fprintf(stderr, "Failed to create ring buffer(packet)\n");
+        fprintf(stderr, "Failed to create ring buffer(packet): %s\n", strerror(errno));
         goto cleanup;
     }
 	chown_rb = ring_buffer__new(bpf_map__fd(skel->maps.chown_rb), chown_rb_handle_event, NULL, NULL);
     if (!chown_rb) 
 	{
         err = -1;
-        fprintf(stderr, "Failed to create ring buffer(packet)\n");
+        fprintf(stderr, "Failed to create ring buffer(packet): %s\n", strerror(errno));
         goto cleanup;
     }
 	ftruncate_rb = ring_buffer__new(bpf_map__fd(skel->maps.ftruncate_rb), ftruncate_rb_handle_event, NULL, NULL);
     if (!ftruncate_rb) 
 	{
         err = -1;
-        fprintf(stderr, "Failed to create ring buffer(packet)\n");
+        fprintf(stderr, "Failed to create ring buffer(packet): %s\n", strerror(errno));
         goto cleanup;
     }
 	mount_rb = ring_buffer__new(bpf_map__fd(skel->maps.mount_rb), mount_rb_handle_event, NULL, NULL);
     if (!mount_rb) 
 	{
         err = -1;
-        fprintf(stderr, "Failed to create ring buffer(packet)\n");
+        fprintf(stderr, "Failed to create ring buffer(packet): %s\n", strerror(errno));
         goto cleanup;
     }
 	open_rb = ring_buffer__new(bpf_map__fd(skel->maps.open_rb), open_rb_handle_event, NULL, NULL);
     if (!open_rb) 
 	{
         err = -1;
-        fprintf(stderr, "Failed to create ring buffer(packet)\n");
+        fprintf(stderr, "Failed to create ring buffer(packet): %s\n", strerror(errno));
         goto cleanup;
     }
 	read_rb = ring_buffer__new(bpf_map__fd(skel->maps.read_rb), read_rb_handle_event, NULL, NULL);
     if (!read_rb) 
 	{
         err = -1;
-        fprintf(stderr, "Failed to create ring buffer(packet)\n");
+        fprintf(stderr, "Failed to create ring buffer(packet): %s\n", strerror(errno));
         goto cleanup;
     }
 	rename_rb = ring_buffer__new(bpf_map__fd(skel->maps.rename_rb), rename_rb_handle_event, NULL, NULL);
     if (!rename_rb) 
 	{
         err = -1;
-        fprintf(stderr, "Failed to create ring buffer(packet)\n");
+        fprintf(stderr, "Failed to create ring buffer(packet): %s\n", strerror(errno));
         goto cleanup;
     }
 	unlink_rb = ring_buffer__new(bpf_map__fd(skel->maps.unlink_rb), unlink_rb_handle_event, NULL, NULL);
     if (!unlink_rb) 
 	{
         err = -1;
-        fprintf(stderr, "Failed to create ring buffer(packet)\n");
+        fprintf(stderr, "Failed to create ring buffer(packet): %s\n", strerror(errno));
         goto cleanup;
     }
 	write_rb = ring_buffer__new(bpf_map__fd(skel->maps.write_rb), write_rb_handle_event, NULL, NULL);
     if (!write_rb) 
 	{
         err = -1;
-        fprintf(stderr, "Failed to create ring buffer(packet)\n");
+        fprintf(stderr, "Failed to create ring buffer(packet): %s\n", strerror(errno));
         goto cleanup;
     }
 
