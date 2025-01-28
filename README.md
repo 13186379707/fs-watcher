@@ -4,7 +4,9 @@ I/O：https://github.com/13186379707/fs-watcher/tree/main/examples/c/io
 
 libbpf自带的原始工具：https://github.com/13186379707/fs-watcher/tree/main/examples/c/tools
 
-文件系统集成工具：https://github.com/13186379707/fs-watcher/tree/main/examples/c/fs-collection
+文件系统集成工具：https://github.com/13186379707/fs-watcher/tree/main/examples/c/fs_watcher
+
+I/O层集成工具：https://github.com/13186379707/fs-watcher/tree/main/examples/c/io_watcher
 
 文件系统与I/O方面的采集指标：
 
