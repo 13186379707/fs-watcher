@@ -25,14 +25,16 @@ int doesVmProcessExist(pid_t pid) {
 
 // 定义env结构体，用来存储程序中的事件信息
 static struct env {
-    bool io_queue;
+    bool write_disk_time;
 	bool show;
+	bool debug;
     pid_t fs_pid;
 	char hostname[13];
     //enum EventType event_type;
 } env = {
-    .io_queue = false,
+    .write_disk_time = false,
 	.show = false,
+	.debug = false,
 	.fs_pid = -1,
 	.hostname = "",
     //.event_type = NONE_TYPE,
@@ -43,8 +45,9 @@ const char *argp_program_bug_address = "<13186379707@163.com>";
 const char argp_program_doc[] = "BPF program used for monitoring FileSystem information\n";
 int option_selected = 0;  // 功能标志变量,确保激活子功能
 static const struct argp_option opts[] = {
-    {"io_queue", 'q', 0, 0, "Trace io queue"},
+    {"write_disk_time", 'w', 0, 0, "Trace io queue"},
 	{"show", 's', NULL, 0, "Visual display"},
+	{"debug", 'd', 0, 0, "Trace io queue"},
 	{NULL, 'h', NULL, OPTION_HIDDEN, "Show the full help"},
     {},
 };
@@ -54,8 +57,14 @@ static error_t parse_arg(int key, char *arg, struct argp_state *state) {
 		case 's':
 			env.show = true;
 			break;
-		case 'q':
-			env.io_queue = true;
+		case 'w':
+			env.write_disk_time = true;
+			break;
+		case 'd':
+			env.debug = true;
+			break;
+		case 'h':
+			argp_state_help(state, stderr, ARGP_HELP_STD_HELP);
 			break;
 		case 'p':
 			env.fs_pid = strtol(arg, NULL, 10);
@@ -88,9 +97,9 @@ void clear_screen() {
     " _____  _____  __            ___  _______ _____ _    _ _____ _____            \n"\
     "|_   _|/ ____ \\ \\ \\          / / \\|__   __/ ____| |  | | ____|  __ \\       \n"\
     "  | | | |    | |\\ \\   /\\   / / _ \\  | | | |    | |__| | |___| |__) |      \n"\
-    "  | | | |    | |   \\ \\ /  \\ / / ___ \\ | | | |    |  __  |  ___|  __ <     \n"\
+    "  | | | |    | | \\ \\ /  \\ / / ___ \\ | | | |    |  __  |  ___|  __ <     \n"\
     " _| |_| |____| |  \\ V /\\ V / /   \\ \\| | | |____| |  | | |___| |  \\ \\    \n"\
-    "|_____|\\______/     \\_/  \\_/_/     \\_\\_|  \\_____|_|  |_| ____|_|   \\_\\  \n\n"
+    "|_____|\\______/    \\_/  \\_/_/     \\_\\_|  \\_____|_|  |_| ____|_|   \\_\\  \n\n"
 
 void print_logo() {
     char *logo = LOGO_STRING;
@@ -120,23 +129,26 @@ static void sig_handler(int sig)
 
 static int libbpf_print_fn(enum libbpf_print_level level, const char *format,
                            va_list args) {
-	//if (level == LIBBPF_DEBUG && !env.debug)
-    //    return 0;
+	if (level == LIBBPF_DEBUG && !env.debug)
+        return 0;
     return vfprintf(stderr, format, args);
 }
 
-static int io_queue_rb_handle_event(void *ctx, void *data,unsigned long data_sz)
+static void write_disk_time_pb_handle_event(void *ctx, int cpu, void *data, unsigned int data_sz)
 {
-	const struct io_queue* e = data;
-	printf("ts:%llu\ttag:%d\tdev numer:%d:%d\t\ttotal requests:%llu\t wait requests:%llu\tmax queue length:%llu\n", e->ts, e->tag, e->dev_num.major, e->dev_num.minor, e->total_requests, e->waiting_requests, e->max_queue_length);
-	
-	return 0;
+	const struct event* e = data;
+	printf("opcode:write data from cache to disk  pid:%-10d duration1_time(us):%-10llu duration2_time(us):%-10llu duration3_time(us):%-10llu comm:%s\n", e->pid, e->duration1,e->duration2, e->duration3, e->comm);
+}
+
+void handle_lost_events(void *ctx, int cpu, __u64 lost_cnt)
+{
+	printf("Lost %llu events on CPU #%d!\n", lost_cnt, cpu);
 }
 
 int main(int argc, char** argv)
 {
 	// 定义一个数据传输的缓冲区
-	struct ring_buffer *io_queue_rb = NULL;
+	struct perf_buffer *pb = NULL;
 	struct io_watcher_bpf* skel;
 	int err;
 	/*解析命令行参数*/
@@ -170,13 +182,14 @@ int main(int argc, char** argv)
 		goto cleanup;
 	}
 
-    io_queue_rb = ring_buffer__new(bpf_map__fd(skel->maps.io_queue_rb), io_queue_rb_handle_event, NULL, NULL);
-    if (!io_queue_rb) 
+    pb = perf_buffer__new(bpf_map__fd(skel->maps.events), 64,
+                      write_disk_time_pb_handle_event, handle_lost_events, NULL, NULL);
+    if (!pb)
 	{
-        err = -1;
-        fprintf(stderr, "Failed to create ring buffer(packet): %s\n", strerror(errno));
-        goto cleanup;
-    }
+		err = -1;
+		fprintf(stderr, "Failed to create ring buffer: %s\n", strerror(errno));
+		goto cleanup;
+	}
 
 	if (!env.show)
         print_logo();
@@ -186,8 +199,8 @@ int main(int argc, char** argv)
     //fflush(stdout);
 	
 	while (!exiting) {
-		if (env.io_queue)
-			err = ring_buffer__poll(io_queue_rb, 100 /* timeout, ms */);
+		if (env.write_disk_time)
+			err = perf_buffer__poll(pb, -1);
 		/* Ctrl-C will cause -EINTR */
 		if (err == -EINTR) {
 			err = 0;
@@ -201,8 +214,8 @@ int main(int argc, char** argv)
 	}
 
 cleanup:
-	if (io_queue_rb)
-		ring_buffer__free(io_queue_rb);
+	if (pb)
+		perf_buffer__free(pb);
 
 	io_watcher_bpf__destroy(skel);
 
