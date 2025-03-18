@@ -17,5 +17,6 @@
         "fs_watcher.h": "c",
         "chmod_response_time.bpf.h": "c",
         "read_response_time.bpf.h": "c"
-    }
+    },
+    "cmake.sourceDirectory": "/home/lyy/Desktop/fs-watcher/examples/c/tools"
 }

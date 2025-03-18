@@ -95,6 +95,7 @@ static error_t parse_arg(int key, char *arg, struct argp_state *state) {
         	env.event_monitor = true;
         	break;
 		case 'h':
+			print_logo();
 			argp_state_help(state, stderr, ARGP_HELP_STD_HELP);
 			break;
 		case 'd':

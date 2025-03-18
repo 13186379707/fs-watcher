@@ -1,6 +1,8 @@
 #ifndef FS_WATCHER_H
 #define FS_WATCHER_H
 
+void print_logo();
+
 //fs_watcher
 #define DNAME_INLINE_LEN 32
 
