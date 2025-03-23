@@ -16,7 +16,11 @@
         "common.bpf.h": "c",
         "fs_watcher.h": "c",
         "chmod_response_time.bpf.h": "c",
-        "read_response_time.bpf.h": "c"
+        "read_response_time.bpf.h": "c",
+        "chrono": "c",
+        "algorithm": "c",
+        "fs_monitor.h": "c",
+        "io_vfs.h": "c"
     },
     "cmake.sourceDirectory": "/home/lyy/Desktop/fs-watcher/examples/c/tools"
 }
