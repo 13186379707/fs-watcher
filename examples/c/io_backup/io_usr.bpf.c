@@ -47,7 +47,7 @@ struct {
 
 // uprobe 监控 read 调用
 SEC("uprobe//lib/x86_64-linux-gnu/libc.so.6:read")
-int uprobe_read(struct pt_regs *ctx) {
+int uprobe__read(struct pt_regs *ctx) {
     pid_t pid = bpf_get_current_pid_tgid() >> 32;
 
     // 获取 read 的参数（读取的数据量）
@@ -78,7 +78,7 @@ int uprobe_read(struct pt_regs *ctx) {
 
 // uretprobe 监控 read 返回
 SEC("uretprobe//lib/x86_64-linux-gnu/libc.so.6:read")
-int uretprobe_read(struct pt_regs *ctx) {
+int uretprobe__read(struct pt_regs *ctx) {
     pid_t pid = bpf_get_current_pid_tgid() >> 32;
 
     // 获取 read 的返回值（实际读取的数据量）
@@ -108,7 +108,7 @@ int uretprobe_read(struct pt_regs *ctx) {
 
 // uprobe 监控 write 调用
 SEC("uprobe//lib/x86_64-linux-gnu/libc.so.6:write")
-int uprobe_write(struct pt_regs *ctx) {
+int uprobe__write(struct pt_regs *ctx) {
     pid_t pid = bpf_get_current_pid_tgid() >> 32;
 
     // 获取 write 的参数（写入的数据量）
@@ -140,7 +140,7 @@ int uprobe_write(struct pt_regs *ctx) {
 
 // uretprobe 监控 write 返回
 SEC("uretprobe//lib/x86_64-linux-gnu/libc.so.6:write")
-int uretprobe_write(struct pt_regs *ctx) {
+int uretprobe__write(struct pt_regs *ctx) {
     pid_t pid = bpf_get_current_pid_tgid() >> 32;
 
     // 获取 write 的返回值（实际写入的数据量）
