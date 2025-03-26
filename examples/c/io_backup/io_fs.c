@@ -14,11 +14,14 @@ static void sig_handler(int sig) {
 // 环形缓冲区回调（输出统计结果）
 static int handle_event(void *ctx, void *data, size_t len) {
     const struct event *e = data;
-    if (e->read_count || e->write_count || e->read_psize || e->write_psize || e->metadata_reads || e->metadata_writes) {
-        printf("[1s] Data(R/W): %-6llu/%-6llu | DataSize(R/W): %-10llu/%-10llu | Metadata(R/W): %-6llu/%-6llu\n",
+    if (e->read_count || e->write_count || e->read_psize || e->write_psize || e->metadata_reads || e->metadata_writes 
+        || e->metadata_reads_size || e->metadata_writes_size || e->dirty_page) {
+        printf("[1s] Data(R/W): %-6llu/%-6llu | DataSize(R/W): %-10llu/%-10llu | Metadata(R/W): %-6llu/%-6llu | MetadataSize(R/W): %-10llu/%-10llu | DirtyPage: %-6llu\n",
            e->read_count, e->write_count,
            e->read_psize, e->write_psize,
-           e->metadata_reads, e->metadata_writes);
+           e->metadata_reads, e->metadata_writes,
+           e->metadata_reads_size, e->metadata_writes_size,
+           e->dirty_page);
     }
     
     return 0;
