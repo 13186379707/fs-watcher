@@ -22,14 +22,15 @@ VMLINUX := ../../../vmlinux/$(ARCH)/vmlinux.h
 # outdated
 INCLUDES := -I$(OUTPUT) -I../../../libbpf/include/uapi -I$(dir $(VMLINUX)) -I$(LIBBLAZESYM_INC)
 CFLAGS := -g -Wall
-ALL_LDFLAGS := $(LDFLAGS) $(EXTRA_LDFLAGS)
+ALL_LDFLAGS := $(LDFLAGS) $(EXTRA_LDFLAGS) -lelf -lz -lmicrohttpd
 
-APPS = storage_space \
+# APPS = storage_space \
 	event_monitor \
 	mount_response_time open_response_time read_response_time write_response_time unlink_response_time rename_response_time ftruncate_response_time chmod_response_time chown_response_time \
 	syscall_frequency \
 	fs_monitor meta_cache_stats data_cache_stats
 	
+APPS = open_response_time
 
 CARGO ?= $(shell which cargo)
 ifeq ($(strip $(CARGO)),)
